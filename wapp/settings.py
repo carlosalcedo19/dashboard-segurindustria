@@ -3,7 +3,7 @@ from django.urls import reverse_lazy
 from pathlib import Path
 from dotenv import load_dotenv
 import os
-
+import dj_database_url
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -12,9 +12,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-e)0xx#g)wo*uqr!jqjhx)e!#n0kr=fk$f6lo*ri@z-m(z4m7au'
 
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [ ".onrender.com",]
 
 
 
@@ -39,6 +39,7 @@ LOCAL_APPS = [
 INSTALLED_APPS = BASE_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -47,18 +48,21 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 DATABASES = {
-    'default': {
-        'ENGINE': os.getenv('DATABASE_ENGINE'),
-        'NAME': os.getenv('DATABASE_NAME'),
-        'USER': os.getenv('DATABASE_USER'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-        'HOST': os.getenv('DATABASE_HOST'),
-        'PORT': int(os.getenv('DATABASE_PORT')),
-        'CONN_MAX_AGE': 300
-    }
+    'default': dj_database_url.parse(os.environ.get("DATABASE_URL"))
 }
+
+#DATABASES = {
+#    'default': {
+#        'ENGINE': os.getenv('DATABASE_ENGINE'),
+#          'NAME': os.getenv('DATABASE_NAME'),
+#          'USER': os.getenv('DATABASE_USER'),
+#          'PASSWORD': os.getenv('DATABASE_PASSWORD'),
+#          'HOST': os.getenv('DATABASE_HOST'),
+#          'PORT': int(os.getenv('DATABASE_PORT')),
+#          'CONN_MAX_AGE': 300
+#      }
+#  }
 
 
 UNFOLD = {
@@ -206,6 +210,8 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
+
+
 
 STATIC_ROOT = os.getenv('STATIC_ROOT')
 STATICFILES_DIRS = [
