@@ -1,0 +1,270 @@
+{% extends "unfold/layouts/base.html" %}
+
+{% block content %}
+<div id="root" class="bg-[#f8f9fa] min-h-screen"></div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+<script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js" crossorigin></script>
+<script src="https://unpkg.com/recharts@2.10.3/umd/Recharts.js" crossorigin></script>
+<script src="https://unpkg.com/lucide@latest" crossorigin></script>
+
+{% verbatim %}
+<script type="text/babel">
+  const { useState, useEffect, useMemo } = React;
+
+  const { 
+    PieChart, Pie, Cell, ResponsiveContainer, 
+    BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid 
+  } = window.Recharts;
+
+  // Paleta de colores para gráficos basada en tus códigos
+  const COLORS = ['#2b36d4', '#15803d', '#ea580c', '#dc2626', '#7c3aed'];
+
+  function Dashboard() {
+    const [data, setData] = useState({ leads: [], reasons_data: [], channels_data: [] });
+    const [loading, setLoading] = useState(true);
+    const [exporting, setExporting] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    useEffect(() => {
+      fetch('/api/lead-stats/')
+        .then(res => res.json())
+        .then(resData => {
+          setData({
+            leads: resData.leads || [],
+            reasons_data: resData.reasons_data || [],
+            channels_data: resData.channels_data || []
+          });
+          setLoading(false);
+          setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 500);
+        })
+        .catch(err => {
+          console.error("Error al obtener datos:", err);
+          setLoading(false);
+        });
+    }, []);
+
+    const exportToExcel = () => {
+      if (!data.leads || data.leads.length === 0) return;
+      setExporting(true);
+
+      const uri = 'data:application/vnd.ms-excel;base64,';
+      const template = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">
+        <head></head>
+        <body>
+          <table border="1">
+            <tr style="background-color: #dbebff; color: #2b36d4; font-weight: bold;">
+              <th>Fecha</th><th>Cliente</th><th>Canal</th><th>Asesor</th><th>Producto</th><th>Estado</th><th>Monto</th>
+            </tr>
+            ${data.leads.map(l => `<tr><td>${l.date}</td><td>${l.client}</td><td>${l.channel}</td><td>${l.agent}</td><td>${l.product}</td><td>${l.status}</td><td>${l.amount}</td></tr>`).join('')}
+          </table>
+        </body></html>`;
+
+      const base64 = (s) => window.btoa(unescape(encodeURIComponent(s)));
+      const link = document.createElement("a");
+      link.href = uri + base64(template);
+      link.download = `CRM_Export_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(link);
+      setTimeout(() => { link.click(); document.body.removeChild(link); setExporting(false); }, 1000);
+    };
+
+    const stats = useMemo(() => {
+      const leads = data.leads;
+      const soldLeads = leads.filter(l => l.status === 'Vendido');
+      const totalAmount = soldLeads.reduce((sum, l) => sum + (parseFloat(l.amount) || 0), 0);
+      const conversion = leads.length > 0 ? Math.round((soldLeads.length / leads.length) * 100) : 0;
+      return { total: leads.length, soldCount: soldLeads.length, totalAmount, conversion };
+    }, [data.leads]);
+
+    const filteredLeads = useMemo(() => {
+      return data.leads.filter(l => l.client.toLowerCase().includes(searchTerm.toLowerCase()));
+    }, [data.leads, searchTerm]);
+
+    if (loading) return <div className="flex h-screen items-center justify-center font-bold text-slate-400 text-[10px] tracking-widest uppercase italic text-center">Sincronizando PostgreSQL...</div>;
+
+    return (
+      <div className="max-w-[1400px] mx-auto p-6 font-sans text-slate-900">
+
+        {/* HEADER SUPERIOR */}
+<div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+  <div>
+    <h1 className="text-2xl font-black tracking-tighter uppercase italic text-slate-900">
+        Segurindustria <span className="text-[#2b36d4]">CRM Cloud</span>
+    </h1>
+    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">
+        Análisis Comercial en Tiempo Real
+    </p>
+  </div>
+  <div className="flex gap-3">
+    {/* Botón Exportar - Estilo neutro */}
+    <button 
+      onClick={exportToExcel} 
+      disabled={exporting}
+      className={`px-5 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest flex items-center gap-2 border transition-all shadow-sm ${
+        exporting ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-wait' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 active:scale-95'
+      }`}
+    >
+      <i data-lucide={exporting ? "loader-2" : "file-spreadsheet"} className={`w-4 h-4 ${exporting ? 'animate-spin' : 'text-emerald-600'}`}></i>
+      {exporting ? 'Generando ... ' : 'Exportar'}
+    </button>
+
+    <a 
+      href="../add/" 
+      style={{
+        backgroundColor: '#2b36d4',
+        color: '#ffffff',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        padding: '8px 20px',
+        borderRadius: '8px',
+        fontSize: '11px',
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+        textDecoration: 'none',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+      }}
+      className="hover:opacity-90 transition-all active:scale-95"
+    >
+      <i data-lucide="user-plus" className="w-4 h-4"></i> Nuevo Lead
+    </a>
+  </div>
+</div>
+
+        {/* Métricas */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatCard label="Leads Totales" value={stats.total} icon="users" color="#2b36d4" bg="#dbebff" />
+          <StatCard label="Ventas Cerradas" value={stats.soldCount} icon="target" color="#15803d" bg="#f0fdf4" />
+          <StatCard label="Ingresos (Vendidos)" value={`S/. ${stats.totalAmount.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`} icon="dollar-sign" color="#1e293b" bg="#f1f5f9" />
+          <StatCard label="Tasa de Conversión" value={`${stats.conversion}%`} icon="trending-up" color="#7c3aed" bg="#f5f3ff" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Tabla */}
+          <div className="lg:col-span-8 bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-slate-100 bg-white flex justify-between items-center">
+              <h2 className="font-bold text-slate-700 text-[10px] uppercase tracking-widest flex items-center gap-2">
+                <i data-lucide="layout-grid" className="w-4 h-4 text-[#2b36d4]"></i> Seguimiento en Vivo
+              </h2>
+              <div className="relative">
+                <input type="text" placeholder="Buscar cliente..." className="pl-9 pr-4 py-1.5 border border-slate-100 rounded-lg text-[11px] w-64 outline-none focus:ring-1 focus:ring-[#2b36d4] bg-slate-50/50" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                <i data-lucide="search" className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-300"></i>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="text-[9px] font-black uppercase text-slate-400 border-b border-slate-100">
+                  <tr>
+                    <th className="px-6 py-4">Fecha / Canal</th>
+                    <th className="px-6 py-4">Cliente / Asesor</th>
+                    <th className="px-6 py-4">Estado</th>
+                    <th className="px-6 py-4 text-right">Monto</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50 text-[11px]">
+                  {filteredLeads.map((l) => (
+                    <tr key={l.id} className="hover:bg-slate-50/40 transition-colors border-l-2 border-transparent hover:border-[#2b36d4]">
+                      <td className="px-6 py-4">
+                        <div className="font-bold text-slate-800">{l.date}</div>
+                        <div className="text-[9px] text-[#2b36d4] font-bold uppercase tracking-tighter">{l.channel}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="font-bold text-slate-700">{l.client}</div>
+                        <div className="text-[10px] text-slate-400 italic">{l.product} • {l.agent}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {(() => {
+                          const statusColors = {
+                            'Nuevo': { bg: '#dbebff', text: '#2b36d4', border: '#ffffff' },
+                            'En contacto': { bg: '#f5f3ff', text: '#7c3aed', border: '#ede9fe' },
+                            'Cotizado': { bg: '#fff7ed', text: '#ea580c', border: '#ffedd5' },
+                            'Vendido': { bg: '#f0fdf4', text: '#15803d', border: '#dcfce7' },
+                            'Perdido': { bg: '#ffe7e7', text: '#dc2626', border: '#fddada' },
+                          };
+                          const style = statusColors[l.status] || { bg: '#f9fafb', text: '#4b5563', border: '#f3f4f6' };
+                          return (
+                            <span style={{ backgroundColor: style.bg, color: style.text, border: `1px solid ${style.border}`, padding: '2px 8px', borderRadius: '4px', fontSize: '9px', fontWeight: '600', textTransform: 'uppercase' }}>
+                              {l.status}
+                            </span>
+                          );
+                        })()}
+                      </td>
+                      <td className="px-6 py-4 text-right font-mono font-bold text-slate-700">
+                        S/. {parseFloat(l.amount).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Gráficos */}
+          <div className="lg:col-span-4 space-y-6">
+            <ChartCard title="Motivos de Pérdida" icon="alert-circle" iconColor="text-[#dc2626]">
+              <div style={{ width: '100%', height: '220px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={data.reasons_data} innerRadius={60} outerRadius={85} paddingAngle={5} dataKey="value">
+                      {data.reasons_data.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', fontSize: '10px' }} />
+                    <Legend verticalAlign="bottom" wrapperStyle={{ fontSize: '9px', textTransform: 'uppercase' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </ChartCard>
+            <ChartCard title="Leads por Canal" icon="bar-chart-2" iconColor="text-[#2b36d4]">
+              <div style={{ width: '100%', height: '220px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={data.channels_data} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" fontSize={9} tickLine={false} axisLine={false} tick={{ fill: '#94a3b8', fontWeight: 700 }} />
+                    <YAxis fontSize={9} tickLine={false} axisLine={false} />
+                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: 'none', fontSize: '10px' }} />
+                    <Bar dataKey="value" fill="#2b36d4" radius={[2, 2, 0, 0]} barSize={25} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </ChartCard>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function StatCard({ label, value, icon, color, bg }) {
+    return (
+      <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex items-center gap-5">
+        <div className="p-3 rounded-full" style={{ backgroundColor: bg, color: color }}>
+          <i data-lucide={icon} className="w-6 h-6"></i>
+        </div>
+        <div>
+          <p className="text-[9px] font-bold uppercase text-slate-400 tracking-widest mb-1">{label}</p>
+          <p className="text-2xl font-black text-slate-900 leading-none">{value}</p>
+        </div>
+      </div>
+    );
+  }
+
+  function ChartCard({ title, icon, iconColor, children }) {
+    return (
+      <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+        <h3 className="text-[9px] font-black uppercase text-slate-400 mb-6 flex items-center gap-2 tracking-widest border-b border-slate-50 pb-2">
+          <i data-lucide={icon} className={`w-4 h-4 ${iconColor}`}></i> {title}
+        </h3>
+        {children}
+      </div>
+    );
+  }
+
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(<Dashboard />);
+</script>
+{% endverbatim %}
+{% endblock %}
