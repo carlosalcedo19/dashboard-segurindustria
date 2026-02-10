@@ -6,8 +6,11 @@ import os
 import dj_database_url
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+STATIC_URL = '/static/'
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 
 SECRET_KEY = 'django-insecure-e)0xx#g)wo*uqr!jqjhx)e!#n0kr=fk$f6lo*ri@z-m(z4m7au'
@@ -39,8 +42,8 @@ LOCAL_APPS = [
 INSTALLED_APPS = BASE_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -213,17 +216,16 @@ USE_TZ = True
 
 
 
-STATIC_ROOT = os.getenv('STATIC_ROOT')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
