@@ -19,7 +19,6 @@
     BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid 
   } = window.Recharts;
 
-  // Paleta de colores para gráficos basada en tus códigos
   const COLORS = ['#2b36d4', '#15803d', '#ea580c', '#dc2626', '#7c3aed'];
 
   function Dashboard() {
@@ -27,6 +26,10 @@
     const [loading, setLoading] = useState(true);
     const [exporting, setExporting] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Paginación
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
 
     useEffect(() => {
       fetch('/api/lead-stats/')
@@ -84,59 +87,64 @@
       return data.leads.filter(l => l.client.toLowerCase().includes(searchTerm.toLowerCase()));
     }, [data.leads, searchTerm]);
 
+    const totalPages = Math.ceil(filteredLeads.length / rowsPerPage);
+    const currentLeads = useMemo(() => {
+      const start = (currentPage - 1) * rowsPerPage;
+      return filteredLeads.slice(start, start + rowsPerPage);
+    }, [filteredLeads, currentPage, rowsPerPage]);
+
     if (loading) return <div className="flex h-screen items-center justify-center font-bold text-slate-400 text-[10px] tracking-widest uppercase italic text-center">Sincronizando PostgreSQL...</div>;
 
     return (
       <div className="max-w-[1400px] mx-auto p-6 font-sans text-slate-900">
 
         {/* HEADER SUPERIOR */}
-<div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-  <div>
-    <h1 className="text-2xl font-black tracking-tighter uppercase italic text-slate-900">
-        Segurindustria <span className="text-[#2b36d4]">CRM Cloud</span>
-    </h1>
-    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">
-        Análisis Comercial en Tiempo Real
-    </p>
-  </div>
-  <div className="flex gap-3">
-    {/* Botón Exportar - Estilo neutro */}
-    <button 
-      onClick={exportToExcel} 
-      disabled={exporting}
-      className={`px-5 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest flex items-center gap-2 border transition-all shadow-sm ${
-        exporting ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-wait' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 active:scale-95'
-      }`}
-    >
-      <i data-lucide={exporting ? "loader-2" : "file-spreadsheet"} className={`w-4 h-4 ${exporting ? 'animate-spin' : 'text-emerald-600'}`}></i>
-      {exporting ? 'Generando ... ' : 'Exportar'}
-    </button>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div>
+            <h1 className="text-2xl font-black tracking-tighter uppercase italic text-slate-900">
+                Segurindustria <span className="text-[#2b36d4]">CRM Cloud</span>
+            </h1>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">
+                Análisis Comercial en Tiempo Real
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <button 
+              onClick={exportToExcel} 
+              disabled={exporting}
+              className={`px-5 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest flex items-center gap-2 border transition-all shadow-sm ${
+                exporting ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-wait' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 active:scale-95'
+              }`}
+            >
+              <i data-lucide={exporting ? "loader-2" : "file-spreadsheet"} className={`w-4 h-4 ${exporting ? 'animate-spin' : 'text-emerald-600'}`}></i>
+              {exporting ? 'Generando ... ' : 'Exportar'}
+            </button>
 
-    <a 
-      href="../add/" 
-      style={{
-        backgroundColor: '#2b36d4',
-        color: '#ffffff',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        padding: '8px 20px',
-        borderRadius: '8px',
-        fontSize: '11px',
-        fontWeight: '900',
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em',
-        textDecoration: 'none',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-      }}
-      className="hover:opacity-90 transition-all active:scale-95"
-    >
-      <i data-lucide="user-plus" className="w-4 h-4"></i> Nuevo Lead
-    </a>
-  </div>
-</div>
+            <a 
+              href="../add/" 
+              style={{
+                backgroundColor: '#2b36d4',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 20px',
+                borderRadius: '8px',
+                fontSize: '11px',
+                fontWeight: '900',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                textDecoration: 'none',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              }}
+              className="hover:opacity-90 transition-all active:scale-95"
+            >
+              <i data-lucide="user-plus" className="w-4 h-4"></i> Nuevo Lead
+            </a>
+          </div>
+        </div>
 
-        {/* Métricas */}
+        {/* MÉTRICAS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard label="Leads Totales" value={stats.total} icon="users" color="#2b36d4" bg="#dbebff" />
           <StatCard label="Ventas Cerradas" value={stats.soldCount} icon="target" color="#15803d" bg="#f0fdf4" />
@@ -145,17 +153,24 @@
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Tabla */}
+          {/* TABLA CON PAGINACIÓN */}
           <div className="lg:col-span-8 bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
             <div className="p-4 border-b border-slate-100 bg-white flex justify-between items-center">
               <h2 className="font-bold text-slate-700 text-[10px] uppercase tracking-widest flex items-center gap-2">
                 <i data-lucide="layout-grid" className="w-4 h-4 text-[#2b36d4]"></i> Seguimiento en Vivo
               </h2>
               <div className="relative">
-                <input type="text" placeholder="Buscar cliente..." className="pl-9 pr-4 py-1.5 border border-slate-100 rounded-lg text-[11px] w-64 outline-none focus:ring-1 focus:ring-[#2b36d4] bg-slate-50/50" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                <input 
+                  type="text" 
+                  placeholder="Buscar cliente..." 
+                  className="pl-9 pr-4 py-1.5 border border-slate-100 rounded-lg text-[11px] w-64 outline-none focus:ring-1 focus:ring-[#2b36d4] bg-slate-50/50" 
+                  value={searchTerm} 
+                  onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} 
+                />
                 <i data-lucide="search" className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-300"></i>
               </div>
             </div>
+
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead className="text-[9px] font-black uppercase text-slate-400 border-b border-slate-100">
@@ -167,7 +182,7 @@
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50 text-[11px]">
-                  {filteredLeads.map((l) => (
+                  {currentLeads.map(l => (
                     <tr key={l.id} className="hover:bg-slate-50/40 transition-colors border-l-2 border-transparent hover:border-[#2b36d4]">
                       <td className="px-6 py-4">
                         <div className="font-bold text-slate-800">{l.date}</div>
@@ -202,6 +217,21 @@
                 </tbody>
               </table>
             </div>
+
+            {/* PAGINACIÓN */}
+            <div className="flex justify-between items-center p-4 border-t border-slate-100 text-[11px]">
+              <div>Página {currentPage} de {totalPages}</div>
+              <div className="flex gap-1">
+                <button onClick={() => setCurrentPage(1)} disabled={currentPage===1} className="px-2 py-1 border rounded disabled:opacity-50">Primera</button>
+                <button onClick={() => setCurrentPage(p => Math.max(1, p-1))} disabled={currentPage===1} className="px-2 py-1 border rounded disabled:opacity-50">Anterior</button>
+                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p+1))} disabled={currentPage===totalPages} className="px-2 py-1 border rounded disabled:opacity-50">Siguiente</button>
+                <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage===totalPages} className="px-2 py-1 border rounded disabled:opacity-50">Última</button>
+                <select value={rowsPerPage} onChange={(e) => { setRowsPerPage(parseInt(e.target.value)); setCurrentPage(1); }} className="px-2 py-1 border rounded ml-2">
+                  {[5,10,20,50].map(n => <option key={n} value={n}>{n} / página</option>)}
+                </select>
+              </div>
+            </div>
+
           </div>
 
           {/* Gráficos */}
@@ -233,6 +263,7 @@
               </div>
             </ChartCard>
           </div>
+
         </div>
       </div>
     );
@@ -255,7 +286,7 @@
   function ChartCard({ title, icon, iconColor, children }) {
     return (
       <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-        <h3 className="text-[9px] font-black uppercase text-slate-400 mb-6 flex items-center gap-2 tracking-widest border-b border-slate-50 pb-2">
+        <h3 className="text-[9px] font-black uppercase text-slate-400 mb-6 flex items-center gap-2">
           <i data-lucide={icon} className={`w-4 h-4 ${iconColor}`}></i> {title}
         </h3>
         {children}
