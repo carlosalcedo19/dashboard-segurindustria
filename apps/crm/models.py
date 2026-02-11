@@ -11,7 +11,7 @@ class Lead(BaseModel):
     client = models.ForeignKey(Client, verbose_name="Cliente", on_delete=models.CASCADE,null=True, blank=True, related_name="client_lead")
     channel = models.ForeignKey(Channel,verbose_name="Canal", on_delete=models.CASCADE,null=True, blank=True, related_name="channel_lead")
     fair = models.ForeignKey(Fair, verbose_name="Feria",on_delete=models.SET_NULL, null=True, blank=True, related_name="fair_lead")
-    agent = models.ForeignKey(User, verbose_name="Agente", on_delete=models.CASCADE,null=True, blank=True, related_name="agent_lead")
+    agent = models.ForeignKey(User, verbose_name="Asesor", on_delete=models.CASCADE,null=True, blank=True, related_name="agent_lead")
     product_line = models.ForeignKey(ProductLine, verbose_name="Línea de Producto de Interés", on_delete=models.SET_NULL, null=True, blank=True, related_name="productline_lead")
     product = models.ForeignKey(Product, verbose_name="Producto", on_delete=models.CASCADE,null=True, blank=True, related_name="product_lead")
     status = models.CharField(verbose_name="Estado", max_length=50,choices= LeadStatusChoices.choices)

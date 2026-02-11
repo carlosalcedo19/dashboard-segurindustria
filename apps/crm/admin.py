@@ -27,11 +27,15 @@ class LeadAdmin(BaseAdmin):
         ]
         return custom_urls + urls
     
-    def get_changeform_initial_data(self, request):
-            return {
-                "agent": request.user.id
-            }
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
 
+        if not obj: 
+            form.base_fields["agent"].initial = request.user
+
+        form.base_fields["agent"].disabled = True
+        return form
+    
     def dashboard_view(self, request):
         context = {
             **self.admin_site.each_context(request),
@@ -62,6 +66,25 @@ class LeadAdmin(BaseAdmin):
         return format_html("<img src={icon_url}>", icon_url=settings.ICON_EDIT_URL)
     
     edit.short_description = '->'
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+
+        if request.user.is_superuser:
+            return qs
+
+        return qs.filter(agent=request.user)
+    
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+
+        if obj is not None and obj.agent != request.user:
+            return False
+
+        return super().has_change_permission(request, obj)
+
+
 
 
     def save_model(self, request, obj, form, change):

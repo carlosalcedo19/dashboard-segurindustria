@@ -51,21 +51,106 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-DATABASES = {
-    'default': dj_database_url.parse(os.environ.get("DATABASE_URL"))
-}
-
 #DATABASES = {
-#    'default': {
-#        'ENGINE': os.getenv('DATABASE_ENGINE'),
-#          'NAME': os.getenv('DATABASE_NAME'),
-#          'USER': os.getenv('DATABASE_USER'),
-#          'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-#          'HOST': os.getenv('DATABASE_HOST'),
-#          'PORT': int(os.getenv('DATABASE_PORT')),
- #         'CONN_MAX_AGE': 300
- #     }
- # }
+#    'default': dj_database_url.parse(os.environ.get("DATABASE_URL"))
+#}
+
+DATABASES = {
+    'default': {
+        'ENGINE': os.getenv('DATABASE_ENGINE'),
+          'NAME': os.getenv('DATABASE_NAME'),
+          'USER': os.getenv('DATABASE_USER'),
+          'PASSWORD': os.getenv('DATABASE_PASSWORD'),
+          'HOST': os.getenv('DATABASE_HOST'),
+          'PORT': int(os.getenv('DATABASE_PORT')),
+         'CONN_MAX_AGE': 300
+      }
+ }
+
+
+def get_navigation(request):
+
+    navigation = []
+
+    if request.user.is_superuser:
+        navigation.append({
+            "title": "Autenticación y autorización",
+            "separator": False,
+            "items": [
+                {
+                    "title": "Usuarios",
+                    "icon": "person",
+                    "link": reverse_lazy("admin:users_user_changelist"),
+                },
+                {
+                    "title": "Categorías",
+                    "icon": "category",
+                    "link": reverse_lazy("admin:users_usercategory_changelist"),
+                },
+                {
+                    "title": "Permisos",
+                    "icon": "lock",
+                    "link": reverse_lazy("admin:auth_group_changelist"),
+                },
+            ],
+        })
+
+    navigation.append({
+        "title": "CRM",
+        "separator": True,
+        "items": [
+            {
+                "title": "Dashboard",
+                "icon": "dashboard",
+                "link": "/admin/crm/lead/dashboard/",
+            },
+            {
+                "title": "Clientes",
+                "icon": "family_restroom",
+                "link": reverse_lazy("admin:client_client_changelist"),
+            },
+            {
+                "title": "Empresas",
+                "icon": "account_balance",
+                "link": reverse_lazy("admin:client_company_changelist"),
+            },
+            {
+                "title": "Leads",
+                "icon": "balcony",
+                "link": reverse_lazy("admin:crm_lead_changelist"),
+            },
+        ],
+    })
+
+    if request.user.is_superuser:
+        navigation.append({
+            "title": "Mantenimiento",
+            "separator": True,
+            "items": [
+                {
+                    "title": "Canales de Venta",
+                    "icon": "settings_account_box",
+                    "link": reverse_lazy("admin:maintenance_channel_changelist"),
+                },
+                {
+                    "title": "Productos",
+                    "icon": "balcony",
+                    "link": reverse_lazy("admin:maintenance_product_changelist"),
+                },
+                {
+                    "title": "Líneas de Productos",
+                    "icon": "settings_account_box",
+                    "link": reverse_lazy("admin:maintenance_productline_changelist"),
+                },
+                {
+                    "title": "Ferias",
+                    "icon": "wand_shine",
+                    "link": reverse_lazy("admin:maintenance_fair_changelist"),
+                },
+            ],
+        })
+
+    return navigation
 
 
 UNFOLD = {
@@ -76,6 +161,9 @@ UNFOLD = {
     "LOGIN": {
          "image": "https://cdn-img.segurindustria.pe/wp-content/uploads/2024/02/Bg-ProductosDestacados-Nosotros-Mobile.webp",
          #"redirect_after": lambda r: reverse_lazy("admin:project_project_changelist"),
+    },
+    "THEME": {
+        "default": "light", 
     },
     "COLORS": {
           "primary": {
@@ -93,86 +181,10 @@ UNFOLD = {
             }
     },
     "SIDEBAR": {
-        "show_search": False,
-        "show_all_applications": False,
-        "navigation": [
-            {
-                "title": "Autenticación y autorización",
-                "separator": False,
-                "items": [
-                    {
-                        "title": "Usuarios",
-                        "icon": "person",
-                        "link": reverse_lazy("admin:users_user_changelist"),
-                    },
-                    {
-                        "title": "Categorías",
-                        "icon": "category",
-                        "link": reverse_lazy("admin:users_usercategory_changelist"),
-                    },
-                    {
-                        "title": "Permisos",
-                        "icon": "lock",
-                        "link": reverse_lazy("admin:auth_group_changelist"),
-                    }
-                    
-                ],
-            },
-            {
-                "title": "CRM",
-                "separator": True,
-                "items": [
-                    {
-                        "title": "Dashboard",
-                        "icon": "dashboard",
-                        "link": "/admin/crm/lead/dashboard/", 
-                    },
-                    {
-                        "title": "Clientes",
-                        "icon": "family_restroom",
-                        "link": reverse_lazy("admin:client_client_changelist"),
-                    },  
-                    {
-                        "title": "Empresas",
-                        "icon": "account_balance",
-                        "link": reverse_lazy("admin:client_company_changelist"),
-                    }, 
-                    {
-                        "title": "Leads",
-                        "icon": "balcony",
-                        "link": reverse_lazy("admin:crm_lead_changelist"),
-                    }, 
-                    
-                ],
-            },
-            {
-                "title": "Mantenimiento",
-                "separator": True,
-                "items": [
-                    {
-                        "title": "Canales de Venta",
-                        "icon": "settings_account_box",
-                        "link": reverse_lazy("admin:maintenance_channel_changelist"),
-                    },   
-                    {
-                        "title": "Productos",
-                        "icon": "balcony",
-                        "link": reverse_lazy("admin:maintenance_product_changelist"),
-                    }, 
-                    {
-                         "title": "Líneas de Productos",
-                        "icon": "settings_account_box",
-                        "link": reverse_lazy("admin:maintenance_productline_changelist"),
-                    },
-                    {
-                        "title": "Ferias",
-                        "icon": "wand_shine",
-                        "link": reverse_lazy("admin:maintenance_fair_changelist"),
-                    }, 
-                ],
-            },
-        ]
-    }
+    "show_search": False,
+    "show_all_applications": False,
+    "navigation": get_navigation,
+}
 }
 
 ROOT_URLCONF = 'wapp.urls'
