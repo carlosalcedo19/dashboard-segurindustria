@@ -8,6 +8,6 @@ class DocumentTypeChoices(TextChoices):
     EMPTY = '', ''
 
 
-class SexoChoices(TextChoices):
-    M = 'Masculino', 'Masculino'
-    F = 'Femenino', 'Femenino'
+class PersonTypeChoices(TextChoices):
+    N = 'Natural', 'Natural'
+    E = 'Empresa', 'Empresa'

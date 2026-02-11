@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 import re
 from django.conf import settings
 from apps.users.models import (
-    User
+    User, UserCategory
 )
 
 from django.shortcuts import render
@@ -109,7 +109,7 @@ class UserAdmin(BaseAdmin):
     filter_horizontal = ('groups', 'user_permissions')
     fieldsets = [
         ('Información personal', {
-            'fields': ['first_name', 'last_name', 'email', 'dni']
+            'fields': ['first_name', 'last_name', 'email', 'dni','usercategory']
         }),
         ('Información de inicio de sesión', {
             'fields': ['username', 'password'],
@@ -146,7 +146,19 @@ class UserAdmin(BaseAdmin):
 
     class Media:
         js = ['admin/js/hide_view.js']
-        
+
+class UserCategoryAdmin(BaseAdmin):
+    list_display=('name','detail','edit',)
+    search_fields=('name',)
+    list_display_links = ['edit']
+
+    
+    def edit(self, obj):
+        return format_html("<img src={icon_url}>", icon_url=settings.ICON_EDIT_URL)
+    
+    edit.short_description = '->'
+
 admin.site.register(User, UserAdmin)
+admin.site.register(UserCategory, UserCategoryAdmin)
 admin.site.unregister(Group)
 admin.site.register(Group, CustomGroupAdmin)

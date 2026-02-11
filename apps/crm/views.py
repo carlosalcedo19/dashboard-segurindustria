@@ -4,7 +4,6 @@ from .models import Lead
 
 def lead_stats_api(request):
     try:
-        # Optimizamos la consulta para evitar múltiples hits a la DB
         leads_qs = Lead.objects.select_related('client', 'channel', 'product', 'agent').order_by('-date')
         
         leads_list = []

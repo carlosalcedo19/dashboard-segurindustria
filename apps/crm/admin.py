@@ -6,6 +6,11 @@ from django.shortcuts import render
 from apps.base.admin import BaseAdmin
 from apps.crm.choices import LeadStatusChoices
 from apps.crm.models import Lead
+from apps.maintenance.models import Channel
+from django.urls import path
+from django.http import JsonResponse
+from django.core.exceptions import ValidationError
+
 
 class LeadAdmin(BaseAdmin):
     list_display = ('client', 'channel', 'product', 'amount', 'status_color', 'edit',)
@@ -21,6 +26,11 @@ class LeadAdmin(BaseAdmin):
             path('dashboard/', self.admin_site.admin_view(self.dashboard_view), name='crm_lead_dashboard'),
         ]
         return custom_urls + urls
+    
+    def get_changeform_initial_data(self, request):
+            return {
+                "agent": request.user.id
+            }
 
     def dashboard_view(self, request):
         context = {
@@ -52,5 +62,24 @@ class LeadAdmin(BaseAdmin):
         return format_html("<img src={icon_url}>", icon_url=settings.ICON_EDIT_URL)
     
     edit.short_description = '->'
+
+
+    def save_model(self, request, obj, form, change):
+        if obj.fair:
+            obj.amount = None
+            obj.reason = None
+            obj.product = None
+
+        if obj.channel and obj.channel.channel_type == "digital":
+            obj.fair = None
+
+        super().save_model(request, obj, form, change)
+
+
+    
+    class Media:
+        js = ("admin/js/lead_dynamic_fields.js",)
+
+
 
 admin.site.register(Lead, LeadAdmin)

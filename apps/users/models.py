@@ -25,11 +25,23 @@ class UserManager(BaseUserManager):
         return self._create_user(username, email, password, **extra_fields)
     
 
+class UserCategory(models.Model):
+    name = models.CharField(verbose_name="Nombre de Categoría", max_length=255)
+    detail = models.CharField(verbose_name="Detalles complementarios", max_length=500, null=True, blank=True,)
+
+    class Meta:
+        verbose_name='Categoria de Usuario'
+        verbose_name_plural= 'Categorias de Usuario'
+
+    def __str__(self):
+        return self.name
+
 class User(AbstractUser):
     
     username = models.CharField('Username', max_length=10, unique=True)
     email = models.EmailField('Email', max_length=50, blank=True, null=True, unique = True) #unique = True
     dni = models.CharField('DNI', max_length=8, blank=True, null=True, unique=True)
+    usercategory = models.ForeignKey(UserCategory, verbose_name="Categoría de Usuario", on_delete=models.CASCADE,null=True, blank=True,)
 
     is_active = models.BooleanField('¿Usuario Activo?', default=True)
     
@@ -37,6 +49,7 @@ class User(AbstractUser):
     created_at = models.DateTimeField("Fecha de registro", auto_now_add=True, null=True)
     updated_at = models.DateTimeField("Última de modificación", auto_now=True, null=True)
     creator_user = models.ForeignKey('self', on_delete=models.CASCADE, verbose_name='Usuario creador', null=True, blank=True)
+    
 
     objects = UserManager()
 
@@ -45,4 +58,4 @@ class User(AbstractUser):
         verbose_name_plural = 'Usuarios'
 
     def __str__(self):
-        return f'{self.username}'
+        return f'{self.first_name} {self.last_name}'

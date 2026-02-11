@@ -15,9 +15,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 SECRET_KEY = 'django-insecure-e)0xx#g)wo*uqr!jqjhx)e!#n0kr=fk$f6lo*ri@z-m(z4m7au'
 
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = [ ".onrender.com",]
+ALLOWED_HOSTS = [ ".onrender.com","127.0.0.1", "localhost"]
 
 
 
@@ -51,21 +51,21 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-DATABASES = {
-    'default': dj_database_url.parse(os.environ.get("DATABASE_URL"))
-}
-
 #DATABASES = {
-#    'default': {
-#        'ENGINE': os.getenv('DATABASE_ENGINE'),
-#          'NAME': os.getenv('DATABASE_NAME'),
-#          'USER': os.getenv('DATABASE_USER'),
-#          'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-#          'HOST': os.getenv('DATABASE_HOST'),
-#          'PORT': int(os.getenv('DATABASE_PORT')),
-#          'CONN_MAX_AGE': 300
-#      }
-#  }
+#    'default': dj_database_url.parse(os.environ.get("DATABASE_URL"))
+#}
+
+DATABASES = {
+    'default': {
+        'ENGINE': os.getenv('DATABASE_ENGINE'),
+          'NAME': os.getenv('DATABASE_NAME'),
+          'USER': os.getenv('DATABASE_USER'),
+          'PASSWORD': os.getenv('DATABASE_PASSWORD'),
+          'HOST': os.getenv('DATABASE_HOST'),
+          'PORT': int(os.getenv('DATABASE_PORT')),
+          'CONN_MAX_AGE': 300
+      }
+  }
 
 
 UNFOLD = {
@@ -106,6 +106,11 @@ UNFOLD = {
                         "link": reverse_lazy("admin:users_user_changelist"),
                     },
                     {
+                        "title": "Categorías",
+                        "icon": "category",
+                        "link": reverse_lazy("admin:users_usercategory_changelist"),
+                    },
+                    {
                         "title": "Permisos",
                         "icon": "lock",
                         "link": reverse_lazy("admin:auth_group_changelist"),
@@ -126,12 +131,18 @@ UNFOLD = {
                         "title": "Clientes",
                         "icon": "family_restroom",
                         "link": reverse_lazy("admin:client_client_changelist"),
-                    },   
+                    },  
+                    {
+                        "title": "Empresas",
+                        "icon": "account_balance",
+                        "link": reverse_lazy("admin:client_company_changelist"),
+                    }, 
                     {
                         "title": "Leads",
                         "icon": "balcony",
                         "link": reverse_lazy("admin:crm_lead_changelist"),
                     }, 
+                    
                 ],
             },
             {
@@ -147,6 +158,16 @@ UNFOLD = {
                         "title": "Productos",
                         "icon": "balcony",
                         "link": reverse_lazy("admin:maintenance_product_changelist"),
+                    }, 
+                    {
+                         "title": "Líneas de Productos",
+                        "icon": "settings_account_box",
+                        "link": reverse_lazy("admin:maintenance_productline_changelist"),
+                    },
+                    {
+                        "title": "Ferias",
+                        "icon": "wand_shine",
+                        "link": reverse_lazy("admin:maintenance_fair_changelist"),
                     }, 
                 ],
             },
