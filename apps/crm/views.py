@@ -1,31 +1,34 @@
 from django.http import JsonResponse
-from django.db.models import Count
+from django.db.models import Count, Q
 from .models import Lead
 
 def lead_stats_api(request):
     try:
-        # Query base
-        leads_qs = Lead.objects.select_related(
-            'client', 'channel', 'product','product_line', 'agent'
-        ).order_by('-date')
+        leads_qs = Lead.objects.all()
 
-        # Filtro por usuario si no es superuser
         if not request.user.is_superuser:
-            leads_qs = leads_qs.filter(agent=request.user)
+            leads_qs = leads_qs.filter(
+                Q(agent=request.user) | Q(agent__boss=request.user)
+            )
 
-        # Lista de leads
+        leads_qs = leads_qs.select_related(
+            'client', 'channel', 'product', 'agent'
+        ).prefetch_related('product_lines').order_by('-date')
+
         leads_list = []
         for l in leads_qs:
+            lines_names = ", ".join([str(pl) for pl in l.product_lines.all()])
+            
             leads_list.append({
-                "id": l.id,
+                "id": str(l.id), # Útil si usas UUID
                 "date": l.date.strftime('%Y-%m-%d') if l.date else "-",
                 "client": str(l.client) if l.client else "Sin Cliente",
+                "client_type": l.client.get_person_type_display() if l.client else "N/A",
                 "channel": str(l.channel) if l.channel else "Directo",
                 "agent": str(l.agent) if l.agent else "No asignado",
                 "product": (
-                    str(l.product)
-                    if l.product
-                    else str(l.product_line) if l.product_line
+                    str(l.product) if l.product 
+                    else lines_names if lines_names 
                     else "N/A"
                 ),
                 "status": l.status,
@@ -33,28 +36,28 @@ def lead_stats_api(request):
                 "reason": l.reason or "-"
             })
 
-        # Base para estadísticas: respeta el usuario
-        stats_qs = Lead.objects.all()
-        if not request.user.is_superuser:
-            stats_qs = stats_qs.filter(agent=request.user)
-
-        # Razones de leads perdidos
-        reasons_qs = stats_qs.filter(status='Perdido')\
+        reasons_qs = leads_qs.filter(status='Perdido')\
             .values('reason')\
             .annotate(value=Count('id'))
+        
         reasons_data = [
-            {"name": r['reason'] if r['reason'] else "Otro/No especificado", "value": r['value']} 
+            {"name": r['reason'] or "Otro/No especificado", "value": r['value']} 
             for r in reasons_qs
         ]
 
-        # Canales de los leads
-        channels_qs = stats_qs.values('channel__name')\
-            .annotate(value=Count('id'))
-        channels_data = [
-            {"name": c['channel__name'] if c['channel__name'] else "Otros", "value": c['value']} 
-            for c in channels_qs
-        ]
+        channels_qs = leads_qs.values('channel__name').annotate(
+            total=Count('id')
+        ).order_by('-total')
+        
+        temp_channels = {}
+        for c in channels_qs:
+            name = (c['channel__name'] or "Otros").strip().upper() 
+            temp_channels[name] = temp_channels.get(name, 0) + c['total']
 
+        channels_data = [
+            {"name": name, "value": value} 
+            for name, value in temp_channels.items()
+        ]
         return JsonResponse({
             "leads": leads_list,
             "reasons_data": reasons_data,

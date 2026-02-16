@@ -100,7 +100,7 @@ class UserAdminForm(forms.ModelForm):
 
 class UserAdmin(BaseAdmin):
     form = UserAdminForm  
-    list_display = ('username', 'first_name', 'last_name', 'dni', 'edit')
+    list_display = ('username', 'first_name', 'last_name', 'dni', 'usercategory','edit')
     list_display_links = ('edit',)
     list_per_page = 20
     readonly_fields = ('created_at', 'updated_at', 'last_login')
@@ -109,7 +109,7 @@ class UserAdmin(BaseAdmin):
     filter_horizontal = ('groups', 'user_permissions')
     fieldsets = [
         ('Información personal', {
-            'fields': ['first_name', 'last_name', 'email', 'dni','usercategory']
+            'fields': ['first_name', 'last_name', 'email', 'dni','usercategory','boss']
         }),
         ('Información de inicio de sesión', {
             'fields': ['username', 'password'],

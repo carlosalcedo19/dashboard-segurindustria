@@ -27,7 +27,6 @@
     const [exporting, setExporting] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Paginación
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -61,9 +60,9 @@
         <body>
           <table border="1">
             <tr style="background-color: #dbebff; color: #2b36d4; font-weight: bold;">
-              <th>Fecha</th><th>Cliente</th><th>Canal</th><th>Asesor</th><th>Producto</th><th>Estado</th><th>Monto</th>
+              <th>Fecha</th><th>Cliente</th><th>Tipo Cliente</th><th>Canal</th><th>Asesor</th><th>Producto</th><th>Estado</th><th>Monto</th>
             </tr>
-            ${data.leads.map(l => `<tr><td>${l.date}</td><td>${l.client}</td><td>${l.channel}</td><td>${l.agent}</td><td>${l.product}</td><td>${l.status}</td><td>${l.amount}</td></tr>`).join('')}
+            ${data.leads.map(l => `<tr><td>${l.date}</td><td>${l.client}</td><td>${l.client_type}</td><td>${l.channel}</td><td>${l.agent}</td><td>${l.product}</td><td>${l.status}</td><td>${l.amount}</td></tr>`).join('')}
           </table>
         </body></html>`;
 
@@ -84,7 +83,10 @@
     }, [data.leads]);
 
     const filteredLeads = useMemo(() => {
-      return data.leads.filter(l => l.client.toLowerCase().includes(searchTerm.toLowerCase()));
+      return data.leads.filter(l => 
+        l.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (l.client_type && l.client_type.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
     }, [data.leads, searchTerm]);
 
     const totalPages = Math.ceil(filteredLeads.length / rowsPerPage);
@@ -123,19 +125,7 @@
             <a 
               href="../add/" 
               style={{
-                backgroundColor: '#2b36d4',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '8px 20px',
-                borderRadius: '8px',
-                fontSize: '11px',
-                fontWeight: '900',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                textDecoration: 'none',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                backgroundColor: '#2b36d4', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 20px', borderRadius: '8px', fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.05em', textDecoration: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               }}
               className="hover:opacity-90 transition-all active:scale-95"
             >
@@ -162,7 +152,7 @@
               <div className="relative">
                 <input 
                   type="text" 
-                  placeholder="Buscar cliente..." 
+                  placeholder="Buscar cliente o tipo..." 
                   className="pl-9 pr-4 py-1.5 border border-slate-100 rounded-lg text-[11px] w-64 outline-none focus:ring-1 focus:ring-[#2b36d4] bg-slate-50/50" 
                   value={searchTerm} 
                   onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} 
@@ -177,6 +167,7 @@
                   <tr>
                     <th className="px-6 py-4">Fecha / Canal</th>
                     <th className="px-6 py-4">Cliente / Asesor</th>
+                    <th className="px-6 py-4">Tipo Cliente</th>
                     <th className="px-6 py-4">Estado</th>
                     <th className="px-6 py-4 text-right">Monto</th>
                   </tr>
@@ -191,6 +182,11 @@
                       <td className="px-6 py-4">
                         <div className="font-bold text-slate-700">{l.client}</div>
                         <div className="text-[10px] text-slate-400 italic">{l.product} • {l.agent}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded text-[9px] font-bold uppercase">
+                          {l.client_type || "N/A"}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         {(() => {

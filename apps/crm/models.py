@@ -12,12 +12,17 @@ class Lead(BaseModel):
     channel = models.ForeignKey(Channel,verbose_name="Canal", on_delete=models.CASCADE,null=True, blank=True, related_name="channel_lead")
     fair = models.ForeignKey(Fair, verbose_name="Feria",on_delete=models.SET_NULL, null=True, blank=True, related_name="fair_lead")
     agent = models.ForeignKey(User, verbose_name="Asesor", on_delete=models.CASCADE,null=True, blank=True, related_name="agent_lead")
-    product_line = models.ForeignKey(ProductLine, verbose_name="Línea de Producto de Interés", on_delete=models.SET_NULL, null=True, blank=True, related_name="productline_lead")
+    product_lines = models.ManyToManyField(
+        ProductLine, 
+        verbose_name="Líneas de Producto de Interés", 
+        blank=True, 
+        related_name="leads"
+    )
     product = models.ForeignKey(Product, verbose_name="Producto", on_delete=models.CASCADE,null=True, blank=True, related_name="product_lead")
     status = models.CharField(verbose_name="Estado", max_length=50,choices= LeadStatusChoices.choices)
     amount = models.DecimalField(verbose_name="Monto", max_digits=12,decimal_places=2, default=0, null=True, blank=True,)
     reason = models.CharField(verbose_name="Razón", max_length=100, blank=True, null=True, choices= ReasonChoices.choices, )
-    date =  models.DateField(verbose_name='Fecha de contacto', help_text='Fecha de inicio de contacto')
+    date =  models.DateTimeField(verbose_name='Fecha de contacto', help_text='Fecha de inicio de contacto', auto_now_add=True)
 
     class Meta:
         verbose_name='Lead'

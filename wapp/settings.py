@@ -51,25 +51,24 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-DATABASES = {
-    'default': dj_database_url.parse(os.environ.get("DATABASE_URL"))
-}
-
 #DATABASES = {
- #   'default': {
- #       'ENGINE': os.getenv('DATABASE_ENGINE'),
-  #        'NAME': os.getenv('DATABASE_NAME'),
-  #        'USER': os.getenv('DATABASE_USER'),
-  #        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-  #        'HOST': os.getenv('DATABASE_HOST'),
-   #       'PORT': int(os.getenv('DATABASE_PORT')),
-    #     'CONN_MAX_AGE': 300
-    #  }
- #}
+#    'default': dj_database_url.parse(os.environ.get("DATABASE_URL"))
+#}
+
+DATABASES = {
+    'default': {
+        'ENGINE': os.getenv('DATABASE_ENGINE'),
+          'NAME': os.getenv('DATABASE_NAME'),
+          'USER': os.getenv('DATABASE_USER'),
+          'PASSWORD': os.getenv('DATABASE_PASSWORD'),
+          'HOST': os.getenv('DATABASE_HOST'),
+          'PORT': int(os.getenv('DATABASE_PORT')),
+         'CONN_MAX_AGE': 300
+      }
+ }
 
 
 def get_navigation(request):
-
     navigation = []
 
     if request.user.is_superuser:
@@ -77,33 +76,22 @@ def get_navigation(request):
             "title": "Autenticación y autorización",
             "separator": False,
             "items": [
-                {
-                    "title": "Usuarios",
-                    "icon": "person",
-                    "link": reverse_lazy("admin:users_user_changelist"),
-                },
-                {
-                    "title": "Categorías",
-                    "icon": "category",
-                    "link": reverse_lazy("admin:users_usercategory_changelist"),
-                },
-                {
-                    "title": "Permisos",
-                    "icon": "lock",
-                    "link": reverse_lazy("admin:auth_group_changelist"),
-                },
+                {"title": "Usuarios", "icon": "person", "link": reverse_lazy("admin:users_user_changelist")},
+                {"title": "Categorías", "icon": "category", "link": reverse_lazy("admin:users_usercategory_changelist")},
+                {"title": "Permisos", "icon": "lock", "link": reverse_lazy("admin:auth_group_changelist")},
             ],
         })
 
-    navigation.append({
-        "title": "CRM",
-        "separator": True,
-        "items": [
-            {
-                "title": "Dashboard",
-                "icon": "dashboard",
-                "link": "/admin/crm/lead/dashboard/",
-            },
+    crm_items = [
+        {
+            "title": "Dashboard",
+            "icon": "dashboard",
+            "link": "/admin/crm/lead/dashboard/",
+        },
+    ]
+
+    if request.user.is_superuser:
+        crm_items.extend([
             {
                 "title": "Clientes",
                 "icon": "family_restroom",
@@ -114,12 +102,18 @@ def get_navigation(request):
                 "icon": "account_balance",
                 "link": reverse_lazy("admin:client_company_changelist"),
             },
-            {
-                "title": "Leads",
-                "icon": "balcony",
-                "link": reverse_lazy("admin:crm_lead_changelist"),
-            },
-        ],
+        ])
+
+    crm_items.append({
+        "title": "Leads",
+        "icon": "balcony",
+        "link": reverse_lazy("admin:crm_lead_changelist"),
+    })
+
+    navigation.append({
+        "title": "CRM",
+        "separator": True,
+        "items": crm_items,
     })
 
     if request.user.is_superuser:
@@ -127,31 +121,14 @@ def get_navigation(request):
             "title": "Mantenimiento",
             "separator": True,
             "items": [
-                {
-                    "title": "Canales de Venta",
-                    "icon": "settings_account_box",
-                    "link": reverse_lazy("admin:maintenance_channel_changelist"),
-                },
-                {
-                    "title": "Productos",
-                    "icon": "balcony",
-                    "link": reverse_lazy("admin:maintenance_product_changelist"),
-                },
-                {
-                    "title": "Líneas de Productos",
-                    "icon": "settings_account_box",
-                    "link": reverse_lazy("admin:maintenance_productline_changelist"),
-                },
-                {
-                    "title": "Ferias",
-                    "icon": "wand_shine",
-                    "link": reverse_lazy("admin:maintenance_fair_changelist"),
-                },
+                {"title": "Canales de Venta", "icon": "settings_account_box", "link": reverse_lazy("admin:maintenance_channel_changelist")},
+                {"title": "Productos", "icon": "balcony", "link": reverse_lazy("admin:maintenance_product_changelist")},
+                {"title": "Líneas de Productos", "icon": "settings_account_box", "link": reverse_lazy("admin:maintenance_productline_changelist")},
+                {"title": "Ferias", "icon": "wand_shine", "link": reverse_lazy("admin:maintenance_fair_changelist")},
             ],
         })
 
     return navigation
-
 
 UNFOLD = {
     
