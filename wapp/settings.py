@@ -61,11 +61,11 @@ DATABASES = {
 #          'NAME': os.getenv('DATABASE_NAME'),
 #          'USER': os.getenv('DATABASE_USER'),
 #          'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-#          'HOST': os.getenv('DATABASE_HOST'),
-#          'PORT': int(os.getenv('DATABASE_PORT')),
-#         'CONN_MAX_AGE': 300
-#      }
-# }
+ #         'HOST': os.getenv('DATABASE_HOST'),
+   #       'PORT': int(os.getenv('DATABASE_PORT')),
+    #      'CONN_MAX_AGE': 300
+     # }
+ #}
 
 
 def get_navigation(request):

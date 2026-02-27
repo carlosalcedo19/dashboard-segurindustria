@@ -13,7 +13,7 @@ class UnfoldStyleForm(forms.ModelForm):
 class ClientForm(UnfoldStyleForm):
     class Meta:
         model = Client
-        fields = ['person_type', 'document_type', 'document_number', 'first_name', 'last_name', 'email', 'phone', 'position']
+        fields = ['person_type', 'document_type', 'document_number', 'first_name', 'last_name', 'email', 'phone', 'position', 'job']
 
 class LeadForm(UnfoldStyleForm):
     class Meta:

@@ -227,6 +227,7 @@ document.addEventListener("DOMContentLoaded", function() {
         type: document.getElementById('id_person_type') || document.querySelector('[name="person_type"]'),
         amount: document.querySelector('.field-wrapper-amount'),
         reason: document.querySelector('.field-wrapper-reason'),
+        job: document.querySelector('.field-wrapper-job'),
         company: document.getElementById('company-section'),
         docType: document.querySelector('.field-wrapper-document_type'),
         docNum: document.querySelector('.field-wrapper-document_number'),
@@ -261,6 +262,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         
         if(fields.docType) fields.docType.classList.toggle('hidden-custom', isEmpresa);
+        if(fields.job) fields.job.classList.toggle('hidden-custom', isEmpresa);
         if(fields.docNum) {
             fields.docNum.classList.toggle('hidden-custom', isEmpresa);
             const docInput = fields.docNum.querySelector('input');

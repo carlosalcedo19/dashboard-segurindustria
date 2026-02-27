@@ -1,6 +1,6 @@
 from django.db import models
 from apps.base.models import BaseModel
-from apps.client.choices import DocumentTypeChoices, PersonTypeChoices, IndustryTypeChoices
+from apps.client.choices import DocumentTypeChoices, PersonTypeChoices, IndustryTypeChoices, OficioTypeChoices
 
 class Company(BaseModel):
     name = models.CharField(verbose_name="Empresa",max_length=255 )
@@ -24,6 +24,7 @@ class Client(BaseModel):
     first_name = models.CharField('Nombres', max_length=200, null=True, blank=True,)
     last_name = models.CharField('Apellidos', max_length=200, null=True, blank=True,)
     position = models.CharField(verbose_name="Cargo",max_length=255,null=True,blank=True)
+    job = models.CharField(verbose_name="Oficio / Profesión", max_length=255, null=True, blank=True, choices= OficioTypeChoices.choices)
     email= models.EmailField('Email', max_length=50, blank=True, null=True)
     phone = models.CharField(verbose_name='Télefono', blank=True)
    
