@@ -39,7 +39,7 @@ class IndustryTypeChoices(TextChoices):
     TEL = "Telecomunicaciones", "Telecomunicaciones"
     TEX= "Textil", "Textil"
     TRA = "Transporte", "Transporte"
-    OT = "Otros"
+    OT = "Otros", "Otros"
 
 
 class OficioTypeChoices(TextChoices):
