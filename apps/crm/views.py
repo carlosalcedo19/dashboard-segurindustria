@@ -9,6 +9,7 @@ from .models import Fair, Channel
 from apps.client.models import Company, Client
 from django.utils import timezone
 from django.db import transaction
+from apps.client.choices import PersonTypeChoices
 
 def lead_stats_api(request):
     try:
@@ -89,110 +90,105 @@ class CreateLeadCustomView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         active_fairs = self.get_active_fairs()
         selected_fair_id = self.request.GET.get("fair")
         
-        # BUSCAR CANAL STAND AUTOMÁTICAMENTE
         canal_stand = Channel.objects.filter(name__icontains="STAND").first()
-
         context["active_fairs"] = active_fairs
         context["show_fair_selector"] = active_fairs.count() > 1 and not selected_fair_id
-        context["selected_fair_id"] = selected_fair_id
-
-        # VALORES INICIALES
-        initial = {
-            "agent": self.request.user.id,
-        }
         
-        # Si existe el canal STAND, lo pre-cargamos
-        if canal_stand:
-            initial["channel"] = canal_stand.id
-
-        if selected_fair_id:
-            initial["fair"] = selected_fair_id
-        elif active_fairs.count() == 1:
-            initial["fair"] = active_fairs.first().id
-
-        # FORMULARIOS
-        if "lead_form" not in context:
-            context["lead_form"] = LeadForm(initial=initial)
-        if "client_form" not in context:
-            context["client_form"] = ClientForm()
-        if "company_form" not in context:
-            context["company_form"] = CompanyForm()
+        initial = {"agent": self.request.user.id}
+        if canal_stand: initial["channel"] = canal_stand.id
+        if selected_fair_id: initial["fair"] = selected_fair_id
+        elif active_fairs.count() == 1: initial["fair"] = active_fairs.first().id
 
         context.update({
+            "lead_form": LeadForm(initial=initial),
+            "client_form": ClientForm(),
+            "company_form": CompanyForm(),
             **admin.site.each_context(self.request),
             "title": "Registro de Lead para Feria",
         })
-
         return context
 
     def post(self, request, *args, **kwargs):
-        # Lógica de validación AJAX para duplicados
         if request.headers.get('x-requested-with') == 'XMLHttpRequest' and 'check_duplicate' in request.POST:
             doc_num = request.POST.get('document_number')
-            ruc = request.POST.get('ruc')
-
-            if ruc:
-                empresa = Company.objects.filter(ruc=ruc).first()
-                if empresa:
-                    return JsonResponse({
-                        'status': 'exists',
-                        'name': empresa.name,
-                        'id': empresa.id
-                    })
-
             if doc_num:
                 cliente = Client.objects.filter(document_number=doc_num).first()
                 if cliente:
                     return JsonResponse({
-                        'status': 'exists',
-                        'name': f"{cliente.first_name} {cliente.last_name}",
+                        'status': 'exists', 
+                        'name': f"{cliente.first_name} {cliente.last_name}", 
                         'id': cliente.id
                     })
-
             return JsonResponse({'status': 'ok'})
 
-        # Procesamiento del formulario
+        
         client_form = ClientForm(request.POST)
         lead_form = LeadForm(request.POST)
         company_form = CompanyForm(request.POST)
 
         existing_client_id = request.POST.get('existing_client_id')
-        es_empresa = request.POST.get('person_type') == 'EMPRESA'
+        person_type_sent = request.POST.get('person_type')
+        
+        es_empresa = person_type_sent == 'Empresa'
 
-        is_valid_client = True if (existing_client_id and existing_client_id != "new") else client_form.is_valid()
-        is_valid_lead = lead_form.is_valid()
-        is_valid_company = company_form.is_valid() if es_empresa else True
+        valid_client = True if (existing_client_id and existing_client_id != "new") else client_form.is_valid()
+        valid_lead = lead_form.is_valid()
+        
+        target_company = None
+        if es_empresa:
+            ruc = request.POST.get('ruc')
+            target_company = Company.objects.filter(ruc=ruc).first()
+            
+            if target_company:
+                valid_company = True
+            else:
+                valid_company = company_form.is_valid()
+        else:
+            valid_company = True
 
-        if is_valid_client and is_valid_lead and is_valid_company:
+
+        if valid_client and valid_lead and valid_company:
             try:
                 with transaction.atomic():
+                    if es_empresa and not target_company:
+                        target_company = company_form.save()
+
                     if existing_client_id and existing_client_id != "new":
                         client = Client.objects.get(id=existing_client_id)
                     else:
-                        client = client_form.save()
+                        client = client_form.save(commit=False)
 
                     if es_empresa:
-                        ruc = request.POST.get('ruc')
-                        company = Company.objects.filter(ruc=ruc).first()
-                        if not company:
-                            company = company_form.save()
-                        client.company = company
-                        client.save()
+                        client.person_type = 'Empresa'
+                        client.company = target_company 
+                        client.position = request.POST.get('position')
+                    else:
+                        client.person_type = 'Natural'
+                        client.company = None
+                    
+                    client.save()
 
                     lead = lead_form.save(commit=False)
                     lead.client = client
-                    if not lead.agent: lead.agent = request.user
+                    if not lead.agent:
+                        lead.agent = request.user
                     lead.save()
                     lead_form.save_m2m()
+                    
 
                 return redirect("admin:crm_lead_changelist")
-            except Exception:
-                pass
+                
+            except Exception as e:
+                print(f"DEBUG ERROR CRÍTICO EN TRANSACCIÓN: {e}")
+        else:
+            print("DEBUG: Error de validación, recargando formulario.")
 
-        return self.render_to_response(self.get_context_data(
-            client_form=client_form, lead_form=lead_form, company_form=company_form
-        ))
+        context = self.get_context_data(
+            client_form=client_form, 
+            lead_form=lead_form, 
+            company_form=company_form
+        )
+        return self.render_to_response(context)

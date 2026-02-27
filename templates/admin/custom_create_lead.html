@@ -215,6 +215,54 @@ document.addEventListener("DOMContentLoaded", function() {
     const displayFairName = document.getElementById('display-fair-name');
 
     const hiddenClientId = document.createElement('input');
+
+    const rucInput = document.querySelector('#company-section input[name="ruc"]');
+    const companyNameInput = document.querySelector('#company-section input[name="name"]');
+    const industryInput = document.querySelector('#company-section select[name="industry"]');
+
+    if (rucInput) {
+
+    rucInput.addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, '');
+
+        const ruc = this.value.trim();
+
+        if (ruc.length === 11) {
+
+            fetch(`/api/get-company/?ruc=${ruc}`)
+                .then(response => response.json())
+                .then(data => {
+
+                    if (data.status === 'found') {
+
+                        if (companyNameInput) {
+                            companyNameInput.value = data.name;
+                            companyNameInput.classList.add('readonly-visual');
+                        }
+                        if (industryInput) {
+                            industryInput.value = data.industry;
+                            industryInput.classList.add('readonly-visual');
+                        }
+                    } else {
+                        if (companyNameInput) {
+                            companyNameInput.value = '';
+                            companyNameInput.classList.remove('readonly-visual');
+                        }
+
+                        if (industryInput) {
+                            industryInput.value = '';
+                            industryInput.classList.remove('readonly-visual');
+                        }
+
+                    }
+
+                })
+                .catch(error => console.error('Error consultando empresa:', error));
+        }
+
+    });
+}
+
     hiddenClientId.type = 'hidden'; 
     hiddenClientId.name = 'existing_client_id'; 
     hiddenClientId.value = "";
@@ -272,33 +320,39 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     mainForm.addEventListener('submit', function(e) {
-        if (hiddenClientId.value !== "" && hiddenClientId.value !== "new") return;
-        
-        e.preventDefault();
-        const formData = new FormData(mainForm);
-        formData.append('check_duplicate', 'true');
+    const personType = fields.type.value; // 'Empresa' o 'Natural'
+    
+    // SI ES EMPRESA: No pedimos confirmación de duplicado, enviamos directo
+    // La vista en Python se encargará de buscar el RUC y vincularlo.
+    if (personType === 'Empresa' || (hiddenClientId.value !== "" && hiddenClientId.value !== "new")) {
+        return; // Permite el submit normal
+    }
+    
+    e.preventDefault();
+    const formData = new FormData(mainForm);
+    formData.append('check_duplicate', 'true');
 
-        fetch(window.location.href, {
-            method: 'POST',
-            body: formData,
-            headers: { 
-                'X-Requested-With': 'XMLHttpRequest', 
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value 
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'exists') {
-                clientNameSpan.innerText = data.name;
-                hiddenClientId.value = data.id;
-                modal.classList.remove('hidden-custom');
-            } else {
-                hiddenClientId.value = "new";
-                mainForm.submit();
-            }
-        })
-        .catch(() => mainForm.submit());
-    });
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData,
+        headers: { 
+            'X-Requested-With': 'XMLHttpRequest', 
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value 
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'exists') {
+            clientNameSpan.innerText = data.name;
+            hiddenClientId.value = data.id;
+            modal.classList.remove('hidden-custom');
+        } else {
+            hiddenClientId.value = "new";
+            mainForm.submit();
+        }
+    })
+    .catch(() => mainForm.submit());
+});
 
     document.getElementById('confirm-duplicate').onclick = () => mainForm.submit();
     document.getElementById('cancel-duplicate').onclick = () => {
