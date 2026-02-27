@@ -5,3 +5,19 @@
 [data-sidebar] a {
     color: white !important;
 }
+
+a.addlink::after {
+    content: " Añadir";
+    font-weight: 500;
+    margin-left: 6px;
+    color: white;
+}
+
+a.addlink {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: auto !important;
+    padding: 0 14px !important;
+    border-radius: 9999px;
+}

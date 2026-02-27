@@ -13,6 +13,7 @@ from apps.maintenance.models import Fair
 from django.db import models
 from django.contrib.admin import SimpleListFilter
 from django.utils import timezone
+from django.shortcuts import redirect
 
 
 class SubordinatesFilter(SimpleListFilter):
@@ -46,8 +47,12 @@ class LeadAdmin(BaseAdmin):
         urls = super().get_urls()
         custom_urls = [
             path('dashboard/', self.admin_site.admin_view(self.dashboard_view), name='crm_lead_dashboard'),
+            path('add/', self.admin_site.admin_view(self.redirect_to_quick)),
         ]
         return custom_urls + urls
+    
+    def redirect_to_quick(self, request):
+        return redirect('/quick-lead/')
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if not request.user.is_superuser:
@@ -101,10 +106,6 @@ class LeadAdmin(BaseAdmin):
 
         super().save_model(request, obj, form, change)
 
-
-    
-    
-    
     def dashboard_view(self, request):
         context = {
             **self.admin_site.each_context(request),

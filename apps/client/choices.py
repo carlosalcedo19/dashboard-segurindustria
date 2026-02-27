@@ -11,3 +11,7 @@ class DocumentTypeChoices(TextChoices):
 class PersonTypeChoices(TextChoices):
     N = 'Natural', 'Natural'
     E = 'Empresa', 'Empresa'
+
+class IndustryTypeChoices(TextChoices):
+    ED = "Educación",  "Educación"
+    MI = "Mineria", "Mineria"

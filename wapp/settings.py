@@ -157,6 +157,7 @@ UNFOLD = {
                 "950": "17 29 77"
             }
     },
+    
     "SIDEBAR": {
     "show_search": False,
     "show_all_applications": False,

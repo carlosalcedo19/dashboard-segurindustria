@@ -12,3 +12,4 @@ class ReasonChoices(TextChoices):
     FS = "Falta de Stock", "Falta de Stock"
     DFT = "Despacho fuera de tiempo","Despacho fuera de tiempo"
     PP = "Precio de Producto", "Precio de Producto"
+

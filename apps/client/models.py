@@ -1,11 +1,11 @@
 from django.db import models
 from apps.base.models import BaseModel
-from apps.client.choices import DocumentTypeChoices, PersonTypeChoices
+from apps.client.choices import DocumentTypeChoices, PersonTypeChoices, IndustryTypeChoices
 
 class Company(BaseModel):
     name = models.CharField(verbose_name="Empresa",max_length=255 )
     ruc = models.CharField( verbose_name="RUC", max_length=11, null=True,blank=True, unique=True)
-    industry = models.CharField(verbose_name="Rubro",max_length=255,null=True,blank=True )
+    industry = models.CharField(verbose_name="Rubro",max_length=255,null=True,blank=True, choices=IndustryTypeChoices.choices )
     
 
     class Meta:
@@ -35,4 +35,4 @@ class Client(BaseModel):
         ordering = ('created_at',)
         
     def __str__(self):
-        return f'{self.document_number} - {self.first_name} -{self.last_name}'
+        return f'{self.document_number} - {self.first_name} {self.last_name}'

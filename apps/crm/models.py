@@ -19,7 +19,7 @@ class Lead(BaseModel):
         related_name="leads"
     )
     product = models.ForeignKey(Product, verbose_name="Producto", on_delete=models.CASCADE,null=True, blank=True, related_name="product_lead")
-    status = models.CharField(verbose_name="Estado", max_length=50,choices= LeadStatusChoices.choices)
+    status = models.CharField(verbose_name="Estado", max_length=50,choices= LeadStatusChoices.choices, default="Nuevo")
     amount = models.DecimalField(verbose_name="Monto", max_digits=12,decimal_places=2, default=0, null=True, blank=True,)
     reason = models.CharField(verbose_name="Razón", max_length=100, blank=True, null=True, choices= ReasonChoices.choices, )
     date =  models.DateTimeField(verbose_name='Fecha de contacto', help_text='Fecha de inicio de contacto', auto_now_add=True)
@@ -31,4 +31,4 @@ class Lead(BaseModel):
     
 
     def __str__(self):
-        return f"{self.client.first_name} - {self.client.last_name}" if self.client else f"Lead #{self.id}"
+        return f"{self.client.first_name} {self.client.last_name}" if self.client else f"Lead #{self.id}"

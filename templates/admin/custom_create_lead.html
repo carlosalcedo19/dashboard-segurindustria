@@ -1,0 +1,315 @@
+{% extends "unfold/layouts/base.html" %}
+
+{% block content %}
+<div class="p-6 lg:p-10 max-w-[1600px] mx-auto">
+    
+    {% if show_fair_selector %}
+    <div id="fair-selection-screen" class="space-y-12">
+        <div class="text-center max-w-2xl mx-auto mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div class="flex items-center center-content">
+                <div class="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white mr-3 shadow-md">
+                    <span class="material-symbols-outlined text-xl">verified</span>
+                </div>
+            </div>
+            <h2 class="text-2xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">Seleccione la Feria Activa</h2>
+            <p class="text-gray-500 dark:text-gray-400 text-lg">Elija el evento en el que se encuentra trabajando para iniciar el registro de leads.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for feria in active_fairs %}
+            <div onclick="selectFair('{{ feria.id }}', '{{ feria.name }}')" 
+                 class="fair-card group relative cursor-pointer bg-white dark:bg-gray-900 rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 border border-gray-100 dark:border-gray-800 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.1)] hover:shadow-2xl hover:shadow-primary-500/20 overflow-hidden">
+                
+                <div class="absolute -right-10 -top-10 w-32 h-32 bg-primary-500/5 rounded-full blur-3xl group-hover:bg-primary-500/10 transition-colors duration-500"></div>
+
+                <div class="relative z-10 flex flex-col items-center text-center">
+                    <div class="w-20 h-20 mb-6 relative">
+                        <div class="absolute inset-0 bg-primary-500/10 dark:bg-primary-500/20 rounded-2xl rotate-6 group-hover:rotate-12 transition-transform duration-500"></div>
+                        <div class="absolute inset-0 bg-primary-100 dark:bg-primary-900/40 rounded-2xl flex items-center justify-center text-primary-600 group-hover:scale-110 transition-all duration-500 shadow-inner">
+                            <span class="material-symbols-outlined text-4xl">event_available</span>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-black text-gray-800 dark:text-white mb-2 tracking-tight group-hover:text-primary-600 transition-colors">
+                        {{ feria.name }}
+                    </h3>
+
+                    <div class="inline-flex items-center px-4 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-full text-gray-500 dark:text-gray-400 mb-8 space-x-2 text-xs font-bold border border-gray-100 dark:border-gray-700">
+                        <span class="material-symbols-outlined text-sm text-primary-500">calendar_today</span>
+                        <span>{{ feria.start_date }} — {{ feria.end_date }}</span>
+                    </div>
+
+                    {# Botón con efecto #}
+                    <div class="relative w-full overflow-hidden rounded-2xl">
+                        <button type="button" class="especial-button">
+                            Ingresar Lead
+                            <span class="material-symbols-outlined text-sm transition-transform duration-300 group-hover:translate-x-1">arrow_forward</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <form method="post" class="space-y-8 {% if show_fair_selector %}hidden-custom{% endif %}" id="lead-main-form">
+        {% csrf_token %}
+        
+        <div id="fair-sticky-header" class="mb-6 p-4 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-xl flex justify-between items-center shadow-sm">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white mr-3 shadow-md">
+                    <span class="material-symbols-outlined text-xl">verified</span>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase font-black text-primary-600 leading-none">Feria Seleccionada</p>
+                    <span id="display-fair-name" class="font-black text-gray-800 dark:text-white text-lg">
+                        {% if not show_fair_selector %}{{ active_fairs.0.name }}{% endif %}
+                    </span>
+                </div>
+            </div>
+            {% if show_fair_selector %}
+            <button type="button" onclick="location.reload()" class="flex items-center px-4 py-2 bg-white dark:bg-gray-800 rounded-lg text-xs font-bold text-primary-600 hover:text-primary-700 border border-primary-100 dark:border-primary-900 transition-all shadow-sm">
+                <span class="material-symbols-outlined text-sm mr-1">cached</span> CAMBIAR FERIA
+            </button>
+            {% endif %}
+        </div>
+
+        <input type="hidden" name="fair_selector" id="selected_fair_id" value="{% if not show_fair_selector %}{{ active_fairs.0.id }}{% endif %}">
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="flex flex-col h-full bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 rounded-3xl overflow-hidden transition-all">
+                <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50 flex items-center">
+                    <div class="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center mr-4 shadow-lg shadow-primary-500/20 text-white">
+                        <span class="material-symbols-outlined text-2xl">person</span>
+                    </div>
+                    <h3 class="font-bold text-gray-800 dark:text-gray-100 text-lg">Información del Cliente</h3>
+                </div>
+                
+                <div class="p-8 space-y-6 flex-grow">
+                    {% for field in client_form %}
+                    <div class="space-y-2 field-wrapper-{{ field.name }}">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                            {{ field.label }} {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                        </label>
+                        <div class="unfold-field">{{ field }}</div>
+                        {% if field.errors %}<p class="text-xs text-red-500 font-medium">{{ field.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    {% if field.name == "person_type" %}
+                    <div id="company-section" class="hidden-custom mt-4 p-6 bg-primary-50/30 dark:bg-primary-900/10 rounded-2xl border-2 border-dashed border-primary-200 dark:border-primary-800 space-y-5 animate-in fade-in zoom-in duration-300">
+                        <div class="flex items-center mb-2 text-primary-600">
+                            <span class="material-symbols-outlined text-xl mr-2">domain</span>
+                            <h4 class="text-xs font-black uppercase tracking-widest">Datos de la Empresa</h4>
+                        </div>
+                        {% for c_field in company_form %}
+                        <div class="space-y-2">
+                            <label class="block text-[10px] font-bold uppercase text-gray-500">{{ c_field.label }}</label>
+                            <div class="unfold-field">{{ c_field }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="flex flex-col h-full bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 rounded-3xl overflow-hidden transition-all">
+                <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50 flex items-center">
+                    <div class="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center mr-4 shadow-lg shadow-green-500/20 text-white">
+                        <span class="material-symbols-outlined text-2xl">trending_up</span>
+                    </div>
+                    <h3 class="font-bold text-gray-800 dark:text-gray-100 text-lg">Oportunidad de Negocio</h3>
+                </div>
+                <div class="p-8 space-y-6 flex-grow">
+                    {% for field in lead_form %}
+                    <div class="space-y-2 field-wrapper-{{ field.name }}">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">{{ field.label }}</label>
+                        <div class="unfold-field">{{ field }}</div>
+                        {% if field.errors %}<p class="text-xs text-red-500">{{ field.errors.0 }}</p>{% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row items-center gap-4 bg-white dark:bg-gray-900 p-6 rounded-3xl shadow-xl">
+            <a href="{% url 'admin:crm_lead_changelist' %}" class="flex-1 w-full inline-flex items-center justify-center bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-6 py-4 rounded-2xl font-bold text-base text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition-all">
+                <span class="material-symbols-outlined mr-2">arrow_back</span> Cancelar
+            </a>
+            <button type="submit" class="flex-[2] w-full inline-flex items-center justify-center bg-primary-600 hover:bg-primary-700 text-white px-6 py-4 rounded-2xl font-black shadow-xl shadow-primary-500/30 transition-all text-base uppercase tracking-widest active:scale-[0.98]">
+                <span class="material-symbols-outlined mr-2">check_circle</span> Finalizar Registro de Lead
+            </button>
+        </div>
+    </form>
+</div>
+
+<div id="duplicate-client-modal" class="hidden-custom fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-md overflow-hidden border border-gray-200 dark:border-gray-700 animate-in zoom-in duration-300">
+        <div class="p-10 text-center">
+            <div class="w-24 h-24 bg-blue-100 dark:bg-blue-900/40 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <span class="material-symbols-outlined text-blue-600 dark:text-blue-400 text-5xl">person_search</span>
+            </div>
+            <h3 class="text-3xl font-black text-gray-900 dark:text-white mb-3 tracking-tighter leading-tight">¿Cliente Existente?</h3>
+            <p class="text-base text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+                Hemos detectado que estos datos ya pertenecen a:
+            </p>
+            <span id="existing-client-name" class="inline-block bg-primary-50 dark:bg-primary-900/30 text-primary-600 px-6 py-3 rounded-2xl font-black text-xl uppercase tracking-tighter"></span>
+        </div>
+        <div class="bg-gray-50 dark:bg-gray-800/80 px-8 py-8 flex flex-col gap-3 border-t border-gray-100 dark:border-gray-700">
+            <button id="confirm-duplicate" type="button" class="w-full bg-primary-600 hover:bg-primary-700 text-white py-5 rounded-2xl font-black text-base shadow-lg transition-all active:scale-95 uppercase tracking-widest">
+                Sí, Vincular Lead
+            </button>
+            <button id="cancel-duplicate" type="button" class="w-full bg-transparent text-gray-500 font-bold text-sm hover:text-gray-800 transition-all uppercase tracking-widest">
+                No, revisar datos
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .unfold-field select, .unfold-field input, .unfold-field textarea {
+        width: 100% !important; border-radius: 16px !important; padding: 0.5rem 1.25rem !important;
+        border: 1px solid #e5e7eb !important; font-size: 0.95rem !important; background-color: #feffff; transition: all 0.3s;
+        font-weight: 500;
+    }
+    .unfold-field input:focus, .unfold-field select:focus {
+        outline: none !important; border-color: #3b82f6 !important; background-color: white !important;
+        box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.1) !important;
+    }
+    .dark .unfold-field input, .dark .unfold-field select {
+        border-color: #374151 !important; background-color: #111827 !important; color: white !important;
+    }
+    
+    .readonly-visual { background-color: #f3f4f6 !important; pointer-events: none !important; opacity: 0.7; filter: grayscale(0.5); }
+    .hidden-custom { display: none !important; }
+    .unfold-field { margin-bottom: 0.5rem; }
+    .especial-button{
+        background: #3b82f6;
+        padding: 0.5rem 2rem;
+        border-radius: 1rem;
+        color: white;
+    }
+
+    .center-content{
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .fair-card { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+    .fair-card:nth-child(1) { animation-delay: 0.1s; }
+    .fair-card:nth-child(2) { animation-delay: 0.2s; }
+    .fair-card:nth-child(3) { animation-delay: 0.3s; }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const mainForm = document.getElementById('lead-main-form');
+    const modal = document.getElementById('duplicate-client-modal');
+    const clientNameSpan = document.getElementById('existing-client-name');
+    const selectedFairIdInput = document.getElementById('selected_fair_id');
+    const displayFairName = document.getElementById('display-fair-name');
+
+    const hiddenClientId = document.createElement('input');
+    hiddenClientId.type = 'hidden'; 
+    hiddenClientId.name = 'existing_client_id'; 
+    hiddenClientId.value = "";
+    mainForm.appendChild(hiddenClientId);
+
+    const fields = {
+        fair: document.getElementById('id_fair'),
+        agent: document.getElementById('id_agent'),
+        channel: document.getElementById('id_channel'),
+        type: document.getElementById('id_person_type') || document.querySelector('[name="person_type"]'),
+        amount: document.querySelector('.field-wrapper-amount'),
+        reason: document.querySelector('.field-wrapper-reason'),
+        company: document.getElementById('company-section'),
+        docType: document.querySelector('.field-wrapper-document_type'),
+        docNum: document.querySelector('.field-wrapper-document_number'),
+        cargo: document.querySelector('.field-wrapper-position')
+    };
+
+    window.selectFair = function(id, name) {
+        selectedFairIdInput.value = id;
+        displayFairName.innerText = name;
+        if (fields.fair) {
+            fields.fair.value = id;
+            fields.fair.classList.add('readonly-visual');
+        }
+        document.getElementById('fair-selection-screen').classList.add('hidden-custom');
+        mainForm.classList.remove('hidden-custom');
+        mainForm.classList.add('animate-in', 'fade-in', 'slide-in-from-bottom-10', 'duration-700');
+        updateUI();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    function updateUI() {
+        const isFeria = selectedFairIdInput.value !== "";
+        const personTypeValue = fields.type ? fields.type.value.toUpperCase() : '';
+        const isEmpresa = personTypeValue === 'EMPRESA';
+
+        if(fields.amount) fields.amount.classList.toggle('hidden-custom', isFeria);
+        if(fields.reason) fields.reason.classList.toggle('hidden-custom', isFeria);
+        
+        if(fields.company) {
+            fields.company.classList.toggle('hidden-custom', !isEmpresa);
+            fields.company.querySelectorAll('input').forEach(i => i.required = isEmpresa);
+        }
+        
+        if(fields.docType) fields.docType.classList.toggle('hidden-custom', isEmpresa);
+        if(fields.docNum) {
+            fields.docNum.classList.toggle('hidden-custom', isEmpresa);
+            const docInput = fields.docNum.querySelector('input');
+            if(docInput) docInput.required = !isEmpresa;
+        }
+        if(fields.cargo) fields.cargo.classList.toggle('hidden-custom', !isEmpresa);
+    }
+
+    mainForm.addEventListener('submit', function(e) {
+        if (hiddenClientId.value !== "" && hiddenClientId.value !== "new") return;
+        
+        e.preventDefault();
+        const formData = new FormData(mainForm);
+        formData.append('check_duplicate', 'true');
+
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: { 
+                'X-Requested-With': 'XMLHttpRequest', 
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value 
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'exists') {
+                clientNameSpan.innerText = data.name;
+                hiddenClientId.value = data.id;
+                modal.classList.remove('hidden-custom');
+            } else {
+                hiddenClientId.value = "new";
+                mainForm.submit();
+            }
+        })
+        .catch(() => mainForm.submit());
+    });
+
+    document.getElementById('confirm-duplicate').onclick = () => mainForm.submit();
+    document.getElementById('cancel-duplicate').onclick = () => {
+        modal.classList.add('hidden-custom');
+        hiddenClientId.value = "";
+    };
+
+    [fields.agent, fields.channel, fields.fair].forEach(f => {
+        if(f && f.value && f.value !== "") f.classList.add('readonly-visual');
+    });
+
+    if(fields.type) fields.type.onchange = updateUI;
+    updateUI();
+});
+</script>
+{% endblock %}
