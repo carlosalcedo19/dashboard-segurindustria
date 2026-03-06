@@ -52,6 +52,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+WHITENOISE_INDEX_FILE = True
+
 DATABASES = {
      'default': dj_database_url.parse(os.environ.get("DATABASE_URL"))
 }

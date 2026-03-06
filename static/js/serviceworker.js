@@ -1,4 +1,3 @@
-// static/js/serviceworker.js
 var staticCacheName = "django-pwa-v" + new Date().getTime();
 var filesToCache = [
     '/offline',
