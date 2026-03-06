@@ -24,6 +24,7 @@ ALLOWED_HOSTS = [ ".onrender.com","127.0.0.1", "localhost"]
 BASE_APPS = [
     "unfold", 
     'django.contrib.admin',
+    'pwa',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -52,20 +53,20 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 DATABASES = {
-    'default': dj_database_url.parse(os.environ.get("DATABASE_URL"))
+     'default': dj_database_url.parse(os.environ.get("DATABASE_URL"))
 }
 
 #DATABASES = {
 #    'default': {
 #        'ENGINE': os.getenv('DATABASE_ENGINE'),
-#          'NAME': os.getenv('DATABASE_NAME'),
-#         'USER': os.getenv('DATABASE_USER'),
-#          'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-#          'HOST': os.getenv('DATABASE_HOST'),
-#          'PORT': int(os.getenv('DATABASE_PORT')),
-#          'CONN_MAX_AGE': 300
-#      }
-# }
+#        'NAME': os.getenv('DATABASE_NAME'),
+#        'USER': os.getenv('DATABASE_USER'),
+#        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
+#        'HOST': os.getenv('DATABASE_HOST'),
+#        'PORT': int(os.getenv('DATABASE_PORT')),
+#        'CONN_MAX_AGE': 300
+#   }
+#}
 
 
 def get_navigation(request):
@@ -240,3 +241,32 @@ MEDIA_URL = "/media/"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# Conexión para Android e IOS
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static', 'js', 'serviceworker.js')
+
+PWA_APP_ICONS = [
+    {
+        'src': '/static/images/icon-192.png',
+        'sizes': '192x192'
+    },
+    {
+        'src': '/static/images/icon-512.png',
+        'sizes': '512x512'
+    }
+]
+
+
+# wapp/settings.py
+
+PWA_APP_NAME = 'Segurindustria CRM Cloud' 
+PWA_APP_SHORT_NAME = 'CRM Cloud'     
+PWA_APP_DESCRIPTION = "Panel de Gestión Segurindustria"
+PWA_APP_THEME_COLOR = "#13305f"         
+PWA_APP_BACKGROUND_COLOR = '#ffffff'      
+PWA_APP_DISPLAY = 'standalone'
+PWA_APP_SCOPE = '/'
+PWA_APP_START_URL = '/'
+PWA_APP_ORIENTATION = 'any'
+PWA_APP_STATUS_BAR_COLOR = 'black-translucent'
+PWA_APP_LANG = 'es-ES'                     
