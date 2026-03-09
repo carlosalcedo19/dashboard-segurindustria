@@ -161,6 +161,9 @@ UNFOLD = {
                 "950": "17 29 77"
             }
     },
+    "STYLES": [
+        lambda request: "https://dashboard-segurindustria.onrender.com/manifest.json", 
+    ],
     
     "SIDEBAR": {
     "show_search": False,
