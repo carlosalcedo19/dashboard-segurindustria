@@ -1,0 +1,8 @@
+{% extends "unfold/layouts/base_simple.html" %}
+
+{% load pwa %}
+
+{% block head %}
+    {{ block.super }}
+    {% progressive_web_app_meta %}
+{% endblock %}
