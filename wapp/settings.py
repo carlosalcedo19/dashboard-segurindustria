@@ -22,9 +22,9 @@ ALLOWED_HOSTS = [ ".onrender.com","127.0.0.1", "localhost"]
 
 
 BASE_APPS = [
+    'pwa',
     "unfold", 
     'django.contrib.admin',
-    'pwa',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
