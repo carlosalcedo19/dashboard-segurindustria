@@ -2,5 +2,6 @@
 {% load pwa %}
 
 {% block extra_head %}
+    {{ block.super }}
     {% progressive_web_app_meta %}
 {% endblock %}
