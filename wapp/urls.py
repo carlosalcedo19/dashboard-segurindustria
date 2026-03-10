@@ -14,7 +14,7 @@ def asset_links(request):
             "target": {
                 "namespace": "android_app",
                 "package_name": "com.onrender.dashboard_segurindustria.twa",
-                "sha256_cert_fingerprints": ["C8:27:0F:95:04:49:DE:3D:32:38:DF:1E:B4:9F:04:79:B5:F4:07:E4:0B:0D:17:55:C3:1E:AE:41:DF:89:3A:20"]
+                "sha256_cert_fingerprints": ["B8:24:8E:59:EF:8E:15:09:E5:37:0D:95:39:CD:DA:3E:CB:9E:76:08:09:C6:64:C2:16:09:BC:29:38:DE:4B:81"]
             }
             }
     ]
