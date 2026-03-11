@@ -9,7 +9,7 @@ class DocumentTypeChoices(TextChoices):
 
 
 class PersonTypeChoices(TextChoices):
-    N = 'Natural', 'Natural'
+    #N = 'Natural', 'Natural'
     E = 'Empresa', 'Empresa'
 
 class IndustryTypeChoices(TextChoices):
