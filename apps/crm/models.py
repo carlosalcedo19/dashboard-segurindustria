@@ -15,7 +15,6 @@ class Lead(BaseModel):
     product_lines = models.ManyToManyField(
         ProductLine, 
         verbose_name="Líneas de Producto de Interés", 
-        blank=True, 
         related_name="leads"
     )
     product = models.ForeignKey(Product, verbose_name="Producto", on_delete=models.CASCADE,null=True, blank=True, related_name="product_lead")

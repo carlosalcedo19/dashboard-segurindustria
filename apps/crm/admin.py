@@ -35,10 +35,10 @@ class SubordinatesFilter(SimpleListFilter):
         return queryset
 
 class LeadAdmin(BaseAdmin):
-    list_display = ('client', 'channel', 'product', 'amount','date', 'status_color', 'edit',)
+    list_display = ('client', 'channel', 'amount','date', 'status_color', 'edit',)
     search_fields = ('client__name',) 
     list_filter = ('status', 'channel', 'date',SubordinatesFilter,)
-    exclude = ['is_active', 'state', 'creator_user',]
+    exclude = ['is_active', 'state', 'creator_user','product']
     filter_horizontal = ('product_lines',)
     list_display_links = ['edit', 'client']
 
